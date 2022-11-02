@@ -1,0 +1,14 @@
+2022-10-28 03:41:02,885 redfish_api.py validate_uri 256 INFO  :: /redfish/v1- This uri is validated against openApi specification
+2022-10-28 03:41:06,198 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1'
+2022-10-28 03:41:06,487 redfish_api.py validate_uri 256 INFO  :: /redfish/v1/Systems- This uri is validated against openApi specification
+2022-10-28 03:41:08,347 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1/Systems'
+2022-10-28 03:41:08,616 redfish_api.py validate_uri 256 INFO  :: /redfish/v1/Systems/System.Embedded.1- This uri is validated against openApi specification
+2022-10-28 03:41:12,067 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1/Systems/System.Embedded.1'
+2022-10-28 03:41:12,358 redfish_api.py validate_uri 256 INFO  :: /redfish/v1/Systems/System.Embedded.1/Bios- This uri is validated against openApi specification
+2022-10-28 03:41:14,034 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1/Systems/System.Embedded.1/Bios'
+2022-10-28 03:41:14,037 redfish_api.py validate_uri 256 INFO  :: /redfish/v1- This uri is validated against openApi specification
+2022-10-28 03:41:17,157 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1'
+2022-10-28 03:41:17,385 redfish_api.py validate_uri 256 INFO  :: /redfish/v1/Systems- This uri is validated against openApi specification
+2022-10-28 03:41:19,788 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1/Systems'
+2022-10-28 03:41:20,013 redfish_api.py validate_uri 256 INFO  :: /redfish/v1/Systems/System.Embedded.1- This uri is validated against openApi specification
+2022-10-28 03:41:23,351 redfish_api.py validate_json 196 INFO  :: JSON schema validated for url '/redfish/v1/Systems/System.Embedded.1'

@@ -1,0 +1,5 @@
+jsonschema
+redfish
+requests
+argparse
+traceback

@@ -51,7 +51,7 @@ logger=logging.get_logger(__name__)
 class Report:
     def __init__(self):
         try:
-            with open("../config/config_redfish_2.json") as config_json:
+            with open("../config/config_redfish.json") as config_json:
                 self.config_dict=json.load(config_json)
             self.rd = RedfishApi()
         except Exception as e:

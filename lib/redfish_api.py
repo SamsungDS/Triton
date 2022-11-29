@@ -51,7 +51,7 @@ class RedfishApi:
     def __init__(self):
         try:
             try:
-                with open("../config/config_redfish_2.json") as config_json:
+                with open("../config/config_redfish.json") as config_json:
                     self.config_dict=json.load(config_json)
             except Exception as e:
                 logger.error("error msg: {}".format(e))

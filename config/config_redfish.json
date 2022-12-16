@@ -1,0 +1,30 @@
+{
+  "login_host" : "https://10x.xxx.yyy.zzz",
+  "username" : "username",
+  "password" : "passwd",
+  "logdir" : "<path>/redfish_validator_test",
+  "response_codes" : {
+    "success" : [200,201,202,204],
+    "failed" : [301,302,304,400,401,403,404,405,406,409,410,411,412,415,428,431,500,501,503,507]
+  },
+  "schema_url" : "https://redfish.dmtf.org/schemas/v1/",
+  "openapi_url" : "https://redfish.dmtf.org/schemas/v1/openapi.yaml",
+  "base_url" : "/redfish/v1",
+  "system_url" : "/redfish/v1/Systems/System.Embedded.1",
+  "system_id" : "all",
+  "reset_typ" : "Off",
+  "bios_get" : "current",
+  "attr_name" : "",
+  "service" : "HTTPS",
+  "prot_enabled" : "0",
+  "port" : "",
+  "dest" : "",
+  "subs_type" : "Event",
+  "context" : "",
+  "protocol" : "Redfish",
+  "ddest" : "",
+  "event_id" : "",
+  "msg" : "",
+  "severity" : "",
+  "manager_reset_type" : ""
+}

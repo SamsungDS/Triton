@@ -1257,7 +1257,7 @@ class RedfishApi:
         """
                 Method to get power usage.
                 :return: Bool, power usage.
-                """
+        """
         try:
             bool_resp, response_base_url = self.get_base_url_response()
             if bool_resp == False:
@@ -1288,30 +1288,46 @@ class RedfishApi:
             return False
 
     def system_power_on(self):
+        """
+                Method power ON system.
+                :return: Bool, power usage.
+        """
         try:
             self.set_reset_type(reset_typ="On")
         except Exception as e:
             traceback.print_exc()
             logger.error("error msg: {}".format(e))
-            return False, None
+            return False
 
     def system_Forceoff(self):
+        """
+                Method Force power off system.
+                :return: Bool
+        """
         try:
             self.set_reset_type(reset_typ="ForceOff")
         except Exception as e:
             traceback.print_exc()
             logger.error("error msg: {}".format(e))
-            return False, None
+            return False
 
     def system_graceful_restart(self):
+        """
+                Method graceful restart system.
+                :return: Bool
+        """
         try:
             self.set_reset_type(reset_typ="GracefulRestart")
         except Exception as e:
             traceback.print_exc()
             logger.error("error msg: {}".format(e))
-            return False, None
+            return False
 
     def system_power_off(self):
+        """
+                Method Force power off system.
+                :return: Bool
+        """
         try:
             self.set_reset_type(reset_typ="PushPowerButton")
         except Exception as e:
@@ -1320,6 +1336,10 @@ class RedfishApi:
             return False, None
 
     def systems_wrapper(self, func):
+        """
+                Method to get multiple system info.
+                :return: List
+        """
         out = []
         for index, host in enumerate(self.REDFISH_OBJ_list):
             self.REDFISH_OBJ = host
@@ -1335,6 +1355,10 @@ class RedfishApi:
         return out
 
     def multi_power_usage(self):
+        """
+                Method to get multiple Power usage info.
+                :return: List
+        """
         output = self.systems_wrapper(self.power_usage())
         return output
 

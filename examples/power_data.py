@@ -39,6 +39,10 @@ csv_file.close()
 
 
 def test_inventory():
+    """
+        Method to fetch power of multiple servers and generate a csv file and log file
+        :return: None
+    """
     power_list = ob.multi_power_usage()
     power_threshold = config_dict["power_threshold"]
     for server in power_list:

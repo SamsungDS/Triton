@@ -121,7 +121,6 @@ class Report:
     def generate_hardware_report(self, html_results):
         """
         Method to generate HTML report for Hardware details.
-        :param logdir: path where you want to store your html report
         :return: None
         """
         try:
@@ -177,6 +176,10 @@ class Report:
             sys.exit(1)
 
     def create_html_table(self, data, headers):
+        """
+        Method to generate HTML table
+        :return: HTML table
+        """
         power_threshold = self.config_dict["power_threshold"]
         html = '<table>'
         html += "<tr><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th></tr>\n".format(headers[0],

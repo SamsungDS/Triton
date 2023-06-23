@@ -49,24 +49,43 @@ local_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def test_hardware_management():
+    """
+            Method to get power State.
+            :return: power state.
+            usage : pytest test_hardware_management.py::test_hardware_management
+    """
     bool_resp, result = ob.get_power_state()
-    print(bool)
     if bool_resp == True:
         logger.info(json.dumps(result, indent=2))
 
 
 def test_get_psu_inventry():
+    """
+            Method to get PSU inventry.
+            :return: PSU inventry.
+            usage : pytest test_hardware_management.py::test_get_psu_inventry
+    """
     bool_resp, result = ob.get_psu_inventory()
     if bool_resp == True:
         print(json.dumps(result, indent=2))
 
 
 def test_get_power_usage():
+    """
+            Method to get power usage.
+            :return: power usage.
+            usage : pytest test_hardware_management.py::test_get_power_usage
+    """
     bool_resp, result = ob.power_usage()
     print(f'{result[0]} Watts')
 
 
 def test_get_multi_power_usage():
+    """
+            Method to get power usage for multiple system.
+            :return: power usage.
+            usage : pytest test_hardware_management.py::test_get_multi_power_usage
+    """
     power = ob.multi_power_usage()
     headers = ['System IP', 'System Name and Model', 'Power (watts)', 'Average (Watts)', 'Max Power (Watts)',
                'Min Power (Watts)']

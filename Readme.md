@@ -1,7 +1,7 @@
-# Redfish Compliance Tool
+# Triton: Redfish Tool
 
 ## About
-Redfish Compliance Tool (RCT) is a python3 tool which helps to perform the hardware management through Redfish API's and verify the compliance of Redfish Specification by DMTF standard.
+Triton: Redfish Tool is a python3 tool which helps to perform the hardware management, power management through Redfish API's and verify the Redfish Specification by DMTF standard.
 
 ## Requirements
 Ensure the machine running the tool has python3 installed.

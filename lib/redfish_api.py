@@ -60,6 +60,7 @@ class RedfishApi:
             self.html_results = ""
             self.REDFISH_OBJ_list = []
             self.login_host = self.config_dict["systems"][0]["login_host"]
+            self.validate = self.config_dict["validate"]
             try:
                 for host in range(len(self.config_dict["systems"])):
                     self.REDFISH_OBJ = redfish.redfish_client(
@@ -68,19 +69,19 @@ class RedfishApi:
                         password=self.config_dict["systems"][host]["password"])
                     self.REDFISH_OBJ.login(auth="basic")
 
-                    self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict[
-                        "RedfishVersion"]
-                    self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
-                        "Manufacturer"]
-                    self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+                    self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict["RedfishVersion"]
+                    print("Version ", self.redfish_version)
+                    if int(self.redfish_version.split(".")[1]) >= 10:
+                        self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Manufacturer"]
+                        self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
                     self.REDFISH_OBJ_list.append(self.REDFISH_OBJ)
             except:
-                # traceback.print_exc()
+                traceback.print_exc()
                 print("Error in making redfish object with given configurations")
                 sys.exit(1)
-            print("Fetching openAPI schema file from web........")
+            #print("Fetching openAPI schema file from web........")
             self.get_openapi_from_redfish_org()
-            print("Fetched!")
+            #print("Fetched!")
         except Exception as e:
             logger.error("error msg: {}".format(e))
             sys.exit(1)
@@ -114,7 +115,7 @@ class RedfishApi:
         """
         try:
             # Validating uri against openApi specified uris:
-            self.validate_uri(url)
+            #self.validate_uri(url)
             # Adding data for json schema validation report:
             if method != "get":
                 self.html_results = self.html_results + "<td class=\"notvalid center\" width=\"30%\">N/A</td></tr>"
@@ -123,7 +124,8 @@ class RedfishApi:
                 response = self.REDFISH_OBJ.get(url, None)
                 if response.status in self.config_dict["response_codes"]["success"]:
                     # Validating Json Schema for "GET" response bodies:
-                    self.validate_json(url, response)
+                    if self.validate == True:
+                        self.validate_json(url, response)
                     return True, response
                 else:
                     raise Exception("Failed")
@@ -136,7 +138,8 @@ class RedfishApi:
                         task_status = task.dict["TaskState"]
                         time.sleep(retry_time if retry_time else 5)
                         task = response.monitor(self.REDFISH_OBJ)
-                    # print(self.redfish_response("get",url)[1].dict[list(body.keys())[0]])
+                    if self.validate == True:
+                        print(self.redfish_response("get",url)[1].dict[list(body.keys())[0]])
                     return True, response
                 else:
                     raise Exception("Failed")
@@ -260,15 +263,28 @@ class RedfishApi:
         Method to get openapi.yaml schema file from openapi url of redfish organisation
         :return: Bool,string output for openapi schema file
         """
+
         try:
-            result = requests.get(self.config_dict["openapi_url"])
-            if result.status_code != 200:
-                raise Exception("Failed")
-            try:
-                self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
-            except Exception as e:
-                logger.error("error msg: {}".format(e))
-                sys.exit(1)
+            #if len(self.openapi_dict) > 0:
+            #    pass
+            #    #return
+            filename = self.config_dict["filename"]
+            if os.path.exists(filename) != True:
+                print("Not exists", self.config_dict["openapi_url"])
+                result = requests.get(self.config_dict["openapi_url"])
+                if result.status_code == 200:
+                    #raise Exception("Failed")
+                    try:
+                        self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
+                        f = open(filename, "w")
+                        f.write(result.text)
+                        f.close()
+                    except Exception as e:
+                        logger.error("error msg: {}".format(e))
+                        sys.exit(1)
+            else:
+                with open(filename, 'r') as file:
+                    self.openapi_dict = yaml.safe_load(file)
         except:
             logger.error("Resource not found at {} with response code as:{}".format(self.config_dict["openapi_url"],
                                                                                     result.status_code))

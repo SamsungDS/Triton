@@ -59,13 +59,15 @@ def test_inventory():
         rows.append(i[2])
 
     filename = "records.csv"
-    with open("records.csv", 'a') as csv_file:
+    with open(filename, 'a') as csv_file:
         csvwriter = csv.writer(csv_file)
         current_date_time = datetime.now()
         row1 = [str(current_date_time)]
         row2 = row1 + rows
-        for val in row2:
-            csvwriter.writerow(row2)
+        csvwriter.writerow(row2)
+        #Fix to remove duplicate rows in csv output
+        #for val in row2:
+        #    csvwriter.writerow(row2)
 
 
 if time_type == "seconds":

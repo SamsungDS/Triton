@@ -2,10 +2,17 @@
     "systems": [
 
     {
-       "login_host" : "x.x.x.x",
-        "username" : "username",
-        "password" : "password"
+       "login_host" : "ipaddress",
+        "username" : "user",
+        "password" : "pass"
+    },
+    {
+       "login_host" : "ipaddress1",
+        "username" : "user",
+        "password" : "pass"
     }
+
+
   ],
   "logdir" : "logdir",
   "response_codes" : {
@@ -16,6 +23,7 @@
   "openapi_url" : "https://redfish.dmtf.org/schemas/v1/openapi.yaml",
   "base_url" : "/redfish/v1",
   "system_url" : "/redfish/v1/Systems/System.Embedded.1",
+  "filename" : "result.txt",
   "system_id" : "all",
   "reset_typ" : "Off",
   "bios_get" : "current",
@@ -34,5 +42,6 @@
   "manager_reset_type" : "",
   "power_threshold": 400,
   "time_interval" : 5,
-  "time_type" : "seconds"
+  "time_type" : "seconds",
+  "validate" : false  
 }

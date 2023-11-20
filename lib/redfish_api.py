@@ -268,21 +268,22 @@ class RedfishApi:
             #if len(self.openapi_dict) > 0:
             #    pass
             #    #return
-            if os.path.exists("result.yml") != True:
+            filename = self.config_dict["filename"]
+            if os.path.exists(filename) != True:
                 print("Not exists", self.config_dict["openapi_url"])
                 result = requests.get(self.config_dict["openapi_url"])
                 if result.status_code == 200:
                     #raise Exception("Failed")
                     try:
                         self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
-                        f = open("result.yml", "w")
+                        f = open(filename, "w")
                         f.write(result.text)
                         f.close()
                     except Exception as e:
                         logger.error("error msg: {}".format(e))
                         sys.exit(1)
             else:
-                with open('result.yml', 'r') as file:
+                with open(filename, 'r') as file:
                     self.openapi_dict = yaml.safe_load(file)
         except:
             logger.error("Resource not found at {} with response code as:{}".format(self.config_dict["openapi_url"],

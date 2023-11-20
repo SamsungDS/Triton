@@ -63,10 +63,9 @@ def test_inventory():
         csvwriter = csv.writer(csv_file)
         current_date_time = datetime.now()
         row1 = [str(current_date_time)]
-        print("what is row", row1)
         row2 = row1 + rows
-        print("what is row2", row2)
         csvwriter.writerow(row2)
+        #Fix to remove duplicate rows in csv output
         #for val in row2:
         #    csvwriter.writerow(row2)
 

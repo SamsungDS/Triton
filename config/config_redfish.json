@@ -23,6 +23,7 @@
   "openapi_url" : "https://redfish.dmtf.org/schemas/v1/openapi.yaml",
   "base_url" : "/redfish/v1",
   "system_url" : "/redfish/v1/Systems/System.Embedded.1",
+  "filename" : "result.txt",
   "system_id" : "all",
   "reset_typ" : "Off",
   "bios_get" : "current",

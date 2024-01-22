@@ -12,9 +12,9 @@ You may install the external modules by running:
 
 ## Usage
 
-`python3 redfish_api.py`
-
-The tool will login into the service specified by the login_host argument using the credentials provided by the “username” and “password” arguments in the configuration file. User needs to provide the required arguments such as hostIP, username, password and path of the tool into the configuration file “config_redfish.json”
+- User needs to provide the required arguments such as hostIP, username, password and path of the tool into the configuration file “config_redfish.json”
+- `python3 power_data.py`   or run any script in the example directory.
+The tool will login into the service specified by the login_host argument using the credentials provided by the “username” and “password” arguments in the configuration file.
 
 An HTML report is constructed and saved in the same directory as the tool.
 

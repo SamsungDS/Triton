@@ -706,6 +706,11 @@ class RedfishApi:
             return False, storage_details
     
     def set_power_limit_correction_time(self,power_limit_correction_time=200):
+        '''
+        API to set the power limt correction
+        Parameters :
+        power_limit_correction_time(int): value to set power limit correction
+        '''
         try:
             power_url=self.config_dict["power_url"]
             logger.info(power_url)
@@ -738,6 +743,11 @@ class RedfishApi:
             return False,None
 
     def set_power_limit_exception(self, power_limit_exception="HardPowerOff"):
+        '''
+        API to set the power limit exception
+        Parameters :
+        power_limit_exception(str): Mode to set power limit exception
+        '''
         try:
             power_url=self.config_dict["power_url"]
             logger.info(power_url)

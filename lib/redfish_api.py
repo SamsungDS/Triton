@@ -60,7 +60,6 @@ class RedfishApi:
             self.html_results = ""
             self.REDFISH_OBJ_list = []
             self.login_host = self.config_dict["systems"][0]["login_host"]
-            self.validate = self.config_dict["validate"]
             try:
                 for host in range(len(self.config_dict["systems"])):
                     self.REDFISH_OBJ = redfish.redfish_client(
@@ -69,19 +68,30 @@ class RedfishApi:
                         password=self.config_dict["systems"][host]["password"])
                     self.REDFISH_OBJ.login(auth="basic")
 
-                    self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict["RedfishVersion"]
-                    print("Version ", self.redfish_version)
-                    if int(self.redfish_version.split(".")[1]) >= 10:
-                        self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Manufacturer"]
+                    self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict[
+                        "RedfishVersion"]
+                    logger.info(self.redfish_version)
+
+                    if self.redfish_version == "1.8.0":
+                        self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
+                            "Manufacturer"]
+                        logger.info(self.system_manufacturer)
+                        self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
+                        logger.info(self.system_model)
+                    else:
+                        self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
+                            "Manufacturer"]
+                        logger.info(self.system_manufacturer)
                         self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+                        logger.info(self.system_model)
                     self.REDFISH_OBJ_list.append(self.REDFISH_OBJ)
             except:
-                traceback.print_exc()
+                # traceback.print_exc()
                 print("Error in making redfish object with given configurations")
                 sys.exit(1)
-            #print("Fetching openAPI schema file from web........")
+            print("Fetching openAPI schema file from web........")
             self.get_openapi_from_redfish_org()
-            #print("Fetched!")
+            print("Fetched!")
         except Exception as e:
             logger.error("error msg: {}".format(e))
             sys.exit(1)
@@ -115,7 +125,10 @@ class RedfishApi:
         """
         try:
             # Validating uri against openApi specified uris:
-            #self.validate_uri(url)
+            if self.config_dict["validate_url"]:
+               self.validate_uri(url)
+            else:
+               logger.info("Url validation was disabled") 
             # Adding data for json schema validation report:
             if method != "get":
                 self.html_results = self.html_results + "<td class=\"notvalid center\" width=\"30%\">N/A</td></tr>"
@@ -124,8 +137,7 @@ class RedfishApi:
                 response = self.REDFISH_OBJ.get(url, None)
                 if response.status in self.config_dict["response_codes"]["success"]:
                     # Validating Json Schema for "GET" response bodies:
-                    if self.validate == True:
-                        self.validate_json(url, response)
+                    self.validate_json(url, response)
                     return True, response
                 else:
                     raise Exception("Failed")
@@ -138,8 +150,7 @@ class RedfishApi:
                         task_status = task.dict["TaskState"]
                         time.sleep(retry_time if retry_time else 5)
                         task = response.monitor(self.REDFISH_OBJ)
-                    if self.validate == True:
-                        print(self.redfish_response("get",url)[1].dict[list(body.keys())[0]])
+                    # print(self.redfish_response("get",url)[1].dict[list(body.keys())[0]])
                     return True, response
                 else:
                     raise Exception("Failed")
@@ -263,28 +274,15 @@ class RedfishApi:
         Method to get openapi.yaml schema file from openapi url of redfish organisation
         :return: Bool,string output for openapi schema file
         """
-
         try:
-            #if len(self.openapi_dict) > 0:
-            #    pass
-            #    #return
-            filename = self.config_dict["filename"]
-            if os.path.exists(filename) != True:
-                print("Not exists", self.config_dict["openapi_url"])
-                result = requests.get(self.config_dict["openapi_url"])
-                if result.status_code == 200:
-                    #raise Exception("Failed")
-                    try:
-                        self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
-                        f = open(filename, "w")
-                        f.write(result.text)
-                        f.close()
-                    except Exception as e:
-                        logger.error("error msg: {}".format(e))
-                        sys.exit(1)
-            else:
-                with open(filename, 'r') as file:
-                    self.openapi_dict = yaml.safe_load(file)
+            result = requests.get(self.config_dict["openapi_url"])
+            if result.status_code != 200:
+                raise Exception("Failed")
+            try:
+                self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
+            except Exception as e:
+                logger.error("error msg: {}".format(e))
+                sys.exit(1)
         except:
             logger.error("Resource not found at {} with response code as:{}".format(self.config_dict["openapi_url"],
                                                                                     result.status_code))
@@ -705,37 +703,59 @@ class RedfishApi:
             logger.error("error_msg: {}".format(e))
             return False, storage_details
 
-    '''def set_power_limit(self,isenable,power_limit):
-        isenable=bool(isenable)
+    def set_power_limit(self,power_limit=500):
         try:
-            power_url=self.config_dict["power_url"]
-            bool_resp1,response_power_url=self.redfish_response("get",power_url)
-            if bool_resp1==True:
-                #validating json schema
-                if not self.validate_json(power_url,response_power_url):
-                    raise Exception("Failed")
-                if "@odata.etag" in response_power_url.dict:
-                    etag=response_power_url.dict["@odata.etag"]
-                else:
-                    etag=""
-                headers={"If-Match":etag}
-                limit_attr=response_power_url.dict["PowerControl"][0]["PowerLimit"]#will check if power limit attribute is present or not
-                if isenable is True:
-                    body_parameter={"PowerControl":[{"PowerLimit":{"LimitInWatts":power_limit}}]}
-                else:
-                    body_parameter={"PowerControl":[{"PowerLimit":{"LimitInWatts":None}}]}
-                bool_resp2,response_patch_url=self.redfish_response("patch",power_url,body_parameter,headers)
-                if bool_resp2==True:
-                    return True,response_patch_url
-                else:
-                    raise Exception("Failed")
+            if self.system_manufacturer == 'Dell Inc.':
+               logger.info("system manufacturer is {}".format(self.system_manufacturer))
+               power_url=self.config_dict["power_url"]
+               logger.info(power_url)
+               bool_resp1,response_power_url=self.redfish_response("get",power_url)
+               #logger.info(response_power_url)
+               if bool_resp1==True:
+                   #validating json schema
+                   # if not self.validate_json(power_url,response_power_url):
+                   #     raise Exception("Failed")
+                   if "@odata.etag" in response_power_url.dict:
+                       etag=response_power_url.dict["@odata.etag"]
+                   else:
+                       etag=""
+                   headers={"If-Match":etag}
+                   limit_attr=response_power_url.dict["PowerControl"][0]["PowerLimit"]#will check if power limit attribute is present or not
+                   if power_limit:
+                      body_parameter={"PowerControl":[{"PowerLimit":{"LimitInWatts":power_limit}}]}
+                   else:
+                      body_parameter={"PowerControl":[{"PowerLimit":{"LimitInWatts":None}}]}
+                   bool_resp2,response_patch_url=self.redfish_response("patch",power_url,body_parameter,headers)
+                   if bool_resp2==True:
+                      return True,response_patch_url
+               else:
+                   raise Exception("Failed")
+               power_url=self.config_dict["power_url"]
+               logger.info(power_url)
+               bool_resp1,response_power_url=self.redfish_response("get",power_url)
+               #logger.info(response_power_url)
+               if bool_resp1==True:
+                  #validating json schema
+                  # if not self.validate_json(power_url,response_power_url):
+                  #     raise Exception("Failed")
+                  if "@odata.etag" in response_power_url.dict:
+                      etag=response_power_url.dict["@odata.etag"]
+                  else:
+                      etag=""
+                  headers={"If-Match":etag}
+                  limit_attr=response_power_url.dict["PowerControl"][0]["PowerLimit"]
+                  logger.info(limit_attr, limit_attr["LimitInWatts"])
+                  if limit_attr["LimitInWatts"] == power_limit:
+                     logger.info(f"power limit modified by user with limit value {power_limit} and validation has been successed")
+                  else:
+                     raise Exception("power limit value validation has failed")
             else:
-                raise Exception("Failed")
+               logger.info("this system manufacturer is {} and power limit setting is not supported, so skipping".format(self.system_manufacturer))   
         except Exception as e:
             #traceback.print_exc()
             logger.error("error msg: {}".format(e))
-            return False,None'''
-
+            return False,None
+    
     def set_reset_type(self):
         """
         Method to set reset type of specified system.
@@ -1291,8 +1311,12 @@ class RedfishApi:
                         bool_respx, response_power_url = self.redfish_response("get", power_url)
 
                         power_usage = response_power_url.dict["PowerControl"][0]["PowerConsumedWatts"]
-                        power_metrics = response_power_url.dict["PowerControl"][0]["PowerMetrics"]
-                        power_usage_list = [power_usage, power_metrics["AverageConsumedWatts"],
+                        logger.info(power_usage)
+                        if self.redfish_version == "1.8.0":
+                            power_usage_list = [power_usage, "N/A","N/A","N/A"]
+                        else:
+                            power_metrics = response_power_url.dict["PowerControl"][0]["PowerMetrics"]
+                            power_usage_list = [power_usage, power_metrics["AverageConsumedWatts"],
                                             power_metrics["MaxConsumedWatts"], power_metrics["MinConsumedWatts"]]
                         logger.info(power_usage_list)
                         return True, power_usage_list
@@ -1360,8 +1384,22 @@ class RedfishApi:
         for index, host in enumerate(self.REDFISH_OBJ_list):
             self.REDFISH_OBJ = host
             self.REDFISH_OBJ.login(auth="basic")
-            self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Manufacturer"]
-            self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+            self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict[
+                "RedfishVersion"]
+            logger.info(self.redfish_version)
+
+            if self.redfish_version == "1.8.0":
+                self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
+                    "Manufacturer"]
+                logger.info(self.system_manufacturer)
+                self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
+                logger.info(self.system_model)
+            else:
+                self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
+                    "Manufacturer"]
+                logger.info(self.system_manufacturer)
+                self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+                logger.info(self.system_model)
             status, function_out = self.power_usage()
             logger.info(function_out)
             if status:

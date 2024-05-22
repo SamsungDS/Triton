@@ -92,3 +92,33 @@ def test_get_multi_power_usage():
     html_tb = gr.create_html_table(power, headers)
     gr.generate_hardware_report(html_tb)
 
+def test_set_power_usage_value():
+    """
+            Method to get power usage.
+            :return: power usage.
+            usage : pytest test_hardware_management.py::test_get_power_usage
+    """
+    bool_resp, result = ob.set_power_limit(power_limit=540)
+    print(result)
+
+'''
+def test_set_power_usage_value_1():
+    """
+            Method to get power usage.
+            :return: power usage.
+            usage : pytest test_hardware_management.py::test_get_power_usage
+    """
+    bool_resp, result = ob.set_power_limit_correction_time(power_limit_correction_time=300)
+    print(result)
+
+def test_set_power_usage_value_2():
+    """
+            Method to get power usage.
+            :return: power usage.
+            usage : pytest test_hardware_management.py::test_get_power_usage
+    """
+    bool_resp, result = ob.set_power_limit_exception(power_limit_exception="NoAction")
+    print(result)
+
+'''
+

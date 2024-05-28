@@ -757,6 +757,8 @@ class RedfishApi:
                 #validating json schema
                 # if not self.validate_json(power_url,response_power_url):
                 #     raise Exception("Failed")
+                if "@odata.etag" in response_power_url.dict:
+                    etag=response_power_url.dict["@odata.etag"]
         except Exception as e:
             #traceback.print_exc()
             logger.error("error msg: {}".format(e))

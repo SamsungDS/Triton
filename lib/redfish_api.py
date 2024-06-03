@@ -704,6 +704,65 @@ class RedfishApi:
             ##traceback.print_exc()
             logger.error("error_msg: {}".format(e))
             return False, storage_details
+    
+    def set_power_limit_correction_time(self,power_limit_correction_time=200):
+        '''
+        API to set the power limt correction
+        Parameters :
+        power_limit_correction_time(int): value to set power limit correction
+        '''
+        try:
+            power_url=self.config_dict["power_url"]
+            logger.info(power_url)
+            bool_resp1,response_power_url=self.redfish_response("get",power_url)
+            #logger.info(response_power_url)
+            if bool_resp1==True:
+                #validating json schema
+                # if not self.validate_json(power_url,response_power_url):
+                #     raise Exception("Failed")
+                if "@odata.etag" in response_power_url.dict:
+                    etag=response_power_url.dict["@odata.etag"]
+                else:
+                    etag=""
+                headers={"If-Match":etag}
+                limit_attr=response_power_url.dict["PowerControl"][0]["PowerLimit"]#will check if power limit attribute is present or not
+                if power_limit_correction_time:
+                    body_parameter={"PowerControl":[{"PowerLimit":{"CorrectionInMs":power_limit_correction_time}}]}
+                else:
+                    body_parameter={"PowerControl":[{"PowerLimit":{"CorrectionInMs":"0"}}]}
+                bool_resp2,response_patch_url=self.redfish_response("patch",power_url,body_parameter,headers)
+                if bool_resp2==True:
+                    return True,response_patch_url
+                else:
+                    raise Exception("Failed")
+            else:
+                raise Exception("Failed")
+        except Exception as e:
+            #traceback.print_exc()
+            logger.error("error msg: {}".format(e))
+            return False,None
+
+    def set_power_limit_exception(self, power_limit_exception="HardPowerOff"):
+        '''
+        API to set the power limit exception
+        Parameters :
+        power_limit_exception(str): Mode to set power limit exception
+        '''
+        try:
+            power_url=self.config_dict["power_url"]
+            logger.info(power_url)
+            bool_resp1,response_power_url=self.redfish_response("get",power_url)
+            #logger.info(response_power_url)
+            if bool_resp1==True:
+                #validating json schema
+                # if not self.validate_json(power_url,response_power_url):
+                #     raise Exception("Failed")
+                if "@odata.etag" in response_power_url.dict:
+                    etag=response_power_url.dict["@odata.etag"]
+        except Exception as e:
+            #traceback.print_exc()
+            logger.error("error msg: {}".format(e))
+            return False,None
 
     '''def set_power_limit(self,isenable,power_limit):
         isenable=bool(isenable)

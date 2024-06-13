@@ -29,10 +29,10 @@
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 import json
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from lib.redfish_api import RedfishApi
@@ -40,6 +40,7 @@ from lib.generate_report import Report
 import os
 
 ob = RedfishApi()
+ob.redfishapi()
 gr = Report()
 import logger as logging
 
@@ -87,11 +88,10 @@ def test_get_multi_power_usage():
             usage : pytest test_hardware_management.py::test_get_multi_power_usage
     """
     power = ob.multi_power_usage()
-    headers = ['System IP', 'System Name and Model', 'Power (watts)', 'Average (Watts)', 'Max Power (Watts)',
-               'Min Power (Watts)']
+    headers = ['System IP', 'System Name and Model', 'Current Power (watts)', 'Average (Watts)', 'Max Power (Watts)',
+               'Min Power (Watts)', 'Power State']
     html_tb = gr.create_html_table(power, headers)
-    gr.generate_hardware_report(html_tb)
-
+    file_name= gr.generate_hardware_report(html_tb)
 def test_set_power_usage_value():
     """
             Method to get power usage.
@@ -100,6 +100,31 @@ def test_set_power_usage_value():
     """
     bool_resp, result = ob.set_power_limit(power_limit=540)
     print(result)
+
+def test_execute_power_exceptions():
+    result = ob.execute_power_exceptions()
+    print(result)
+
+def test_power_actions():
+    power = ob.multi_power_usage()
+    headers = ['System IP', 'System Name and Model', 'Current Power (watts)', 'Average (Watts)', 'Max Power (Watts)',
+               'Min Power (Watts)', 'Power State']
+    html_tb = gr.create_html_table(power, headers)
+    file_name_before = gr.generate_hardware_report(html_tb)
+
+    results = ob.actions_on_power_over_consumed_systems()
+    time.sleep(60)
+    power = ob.multi_power_usage()
+    for system in results:
+        for power_system in power:
+            if system[0] in power_system:
+               if power_system[-1] == "Power Off":
+                  power_system.pop(); power_system.append("Power Off (By Triton) || " + "Last Recorded Power: " + str(system[2]) +"W || " + "Power Threshold : " + str(system[1])  + "W")
+    print(power)
+    html_tb = gr.create_html_table(power, headers)
+    file_name_after = gr.generate_hardware_report(html_tb)
+    print(f'Before power actions power report file name is {file_name_before}')
+    print(f'After power actions power report file name is {file_name_after}')
 
 '''
 def test_set_power_usage_value_1():

@@ -46,7 +46,7 @@ rd = RedfishApi()
 class Report:
     def __init__(self):
         try:
-            with open("../config/config_redfish.json") as config_json:
+            with open("config/config_redfish.json") as config_json:
                 self.config_dict = json.load(config_json)
 
         except Exception as e:
@@ -121,7 +121,7 @@ class Report:
     def generate_hardware_report(self, html_results):
         """
         Method to generate HTML report for Hardware details.
-        :return: None
+        :return: file name of the report will be returned
         """
         try:
             logdir = self.config_dict["logdir"]
@@ -136,7 +136,7 @@ class Report:
               .center {{text-align:center;}}
               .titlerow {{border: 2pt solid}}
               .notvalid {{background-color:#FFFF00}}
-              body {{background-color:lightgrey; border: 1pt solid; text-align:center; margin-left:auto; margin-right:auto}}
+              body {{background-color:lightgrey; border: 1pt solid; text-align:center;}}
               th {{text-align:center; background-color:beige; border: 1pt solid}}
               td {{text-align:left; background-color:white; border: 1pt solid; word-wrap:break-word;}}
               table {{width:90%; margin: 0px auto; table-layout:fixed;}}
@@ -145,7 +145,7 @@ class Report:
             <table>
               <tr>
                 <th>
-                  <h2>##### System Details #####</h2>
+                  <h2> 9th Floor *** Storage Solutions Lab *** Servers Power Report </h2>
                   {}<br/>
                 </th>
               </tr>
@@ -171,6 +171,7 @@ class Report:
             with open(log_file, "w", encoding="utf-8") as out_file:
                 out_file.write(
                     html_string.format(current_time.strftime("%c"), self.html_results))
+            return log_file
         except Exception as e:
             logger.error("error msg: {}".format(e))
             sys.exit(1)
@@ -182,19 +183,24 @@ class Report:
         """
         power_threshold = self.config_dict["power_threshold"]
         html = '<table>'
-        html += "<tr><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th></tr>\n".format(headers[0],
+        html += "<tr><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th></tr>\n".format(headers[0],
                                                                                                        headers[1],
                                                                                                        headers[2],
                                                                                                        headers[3],
                                                                                                        headers[4],
-                                                                                                       headers[5])
+                                                                                                       headers[5],
+                                                                                                       headers[6])
         for row in data:
             html += '<tr>'
             for value in row:
                 if type(value) == int and value >= power_threshold:
                     html += '<td style="background-color: red;">{}</td>'.format(value)
+                elif type(value) == int and value >= (power_threshold * 0.9):
+                    html += '<td style="background-color: orange;">{}</td>'.format(value)
+                elif type(value) == int and value < power_threshold:
+                    html += '<td style="background-color: lightgreen;">{}</td>'.format(value)
                 else:
-                    html += '<td>{}</td>'.format(value)
+                   html += '<td>{}</td>'.format(value)
             html += '</tr>'
         html += '</table>'
         return html

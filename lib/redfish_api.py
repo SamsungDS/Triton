@@ -50,9 +50,11 @@ logger = logging.get_logger(__name__)
 
 class RedfishApi:
     def __init__(self):
+        pass
+    def redfishapi(self):
         try:
             try:
-                with open("../config/config_redfish.json") as config_json:
+                with open("config/config_redfish.json") as config_json:
                     self.config_dict = json.load(config_json)
             except Exception as e:
                 logger.error("error msg: {}".format(e))
@@ -67,17 +69,24 @@ class RedfishApi:
                         username=self.config_dict["systems"][host]["username"],
                         password=self.config_dict["systems"][host]["password"])
                     self.REDFISH_OBJ.login(auth="basic")
-
                     self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict[
                         "RedfishVersion"]
+                    logger.info(self.config_dict["systems"][host]["login_host"])
                     logger.info(self.redfish_version)
-
-                    if self.redfish_version == "1.8.0":
-                        self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
+                    oem_keys=(self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict["Oem"].keys()
+                    if self.redfish_version in ["1.8.0","1.11.0"]:
+                        if ((self.redfish_version == "1.11.0") and (list(oem_keys)[0] == "Dell")): 
+                            self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
                             "Manufacturer"]
-                        logger.info(self.system_manufacturer)
-                        self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
-                        logger.info(self.system_model)
+                            logger.info(self.system_manufacturer)
+                            self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+                            logger.info(self.system_model)
+                        else:
+                            self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
+                            "Manufacturer"]
+                            logger.info(self.system_manufacturer)
+                            self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
+                            logger.info(self.system_model)
                     else:
                         self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
                             "Manufacturer"]
@@ -90,12 +99,12 @@ class RedfishApi:
                 print("Error in making redfish object with given configurations")
                 sys.exit(1)
             print("Fetching openAPI schema file from web........")
-            self.get_openapi_from_redfish_org()
+           #self.get_openapi_from_redfish_org()
             print("Fetched!")
         except Exception as e:
             logger.error("error msg: {}".format(e))
             sys.exit(1)
-
+    
     def get_extended_error_msg(self, response_body):
         """
         Method to get extended error message from response body
@@ -239,24 +248,26 @@ class RedfishApi:
         :return: None
         """
         try:
-            bool_resp1, schema_name = self.parseOdataType(json_response)
-            if bool_resp1 == True:
-                print(schema_name)
+            if self.config_dict["validate_json"]:
+               bool_resp1, schema_name = self.parseOdataType(json_response)
+               if bool_resp1 == True:
+                  print(schema_name)
+               else:
+                  logger.error("@odata.type is not present in response")
+                  return
+               bool_resp2, schema = self.get_schema_from_redfish_org(schema_name)
+               if bool_resp2 == True:
+                  schema_dict = json.loads(schema)  # string is converted into python dict object.
+               else:
+                  return
+               validate(instance=json_response.dict, schema=schema_dict)
+               logger.info("JSON schema validated for url '{}'".format(url))
+               # HTML report data for passed validation
+               msg = "PASS"
+               result_class = "class=\"pass center\""
+               self.html_results = self.html_results + "<td " + result_class + " width=\"30%\">" + msg + "</td></tr>"
             else:
-                logger.error("@odata.type is not present in response")
-                return
-            bool_resp2, schema = self.get_schema_from_redfish_org(schema_name)
-            if bool_resp2 == True:
-                schema_dict = json.loads(schema)  # string is converted into python dict object.
-            else:
-                return
-            validate(instance=json_response.dict, schema=schema_dict)
-            logger.info("JSON schema validated for url '{}'".format(url))
-            # HTML report data for passed validation
-            msg = "PASS"
-            result_class = "class=\"pass center\""
-            self.html_results = self.html_results + "<td " + result_class + " width=\"30%\">" + msg + "</td></tr>"
-
+                logger.info("user disabled the json schema validation for the url")
         except Exception as e:
             # traceback.print_exc()
             logger.error("JSON schema doesn't match for url '{}'".format(url))
@@ -756,7 +767,61 @@ class RedfishApi:
             logger.error("error msg: {}".format(e))
             return False,None
     
-    def set_reset_type(self):
+    def execute_power_exceptions(self):
+        """
+	    This API will collect the power consumptions of the system.
+	    If power consumption is more than system power limit, it will take related power limit excptions action
+	    """
+        try:
+           if self.system_manufacturer in ['Dell Inc.', 'Inspur']:
+              logger.info("system manufacturer is {}".format(self.system_manufacturer))
+              if self.system_manufacturer == 'Dell Inc.':
+                 power_url=self.config_dict["power_url"]
+              else:
+                 power_url=self.config_dict["power_url_1_8_0"]
+              logger.info(power_url)
+              bool_resp1,response_power_url=self.redfish_response("get",power_url)
+              #logger.info(response_power_url)
+              if bool_resp1==True:
+                 #validating json schema
+                 # if not self.validate_json(power_url,response_power_url):
+                 #     raise Exception("Failed")
+                 if "@odata.etag" in response_power_url.dict:
+                   etag=response_power_url.dict["@odata.etag"]
+                 else:
+                   etag=""
+                 headers={"If-Match":etag}
+                 limit_attr=response_power_url.dict["PowerControl"][0]["PowerLimit"]#will check if power limit attribute is present or not
+                 if limit_attr:
+                    power_limit_value = limit_attr["LimitInWatts"]
+                    bool_resp, result = self.power_usage()
+                    if power_limit_value is None:
+                       power_limit_value=self.config_dict["power_threshold"]
+                    print(f'{power_limit_value, result[0]} Watts')
+                    if power_limit_value > result[0]:
+                         logger.info(f"system power consumption is under controle")
+                         return True, ("Power in-controle", power_limit_value,result[0])
+                    else:
+                       if self.system_Forceoff():
+                          logger.info(f"system powered off succeessfully")
+                          return True, ("Power off Done",power_limit_value,result[0])
+                       else:
+                          logger.info(f"failed to powered off")
+                          return False, ("Power off Failed", power_limit_value,result[0])
+                 else:
+                   logger.info(f"power limit value was not supported by server")
+                   return True
+              else:
+                raise Exception("Failed")
+           else:
+              logger.info("this system manufacturer is {} and power limit setting is not supported, so skipping".format(self.system_manufacturer))
+              return True
+        except Exception as e:
+            #traceback.print_exc()
+            logger.error("error msg: {}".format(e))
+            return False
+
+    def set_reset_type(self,reset_typ):
         """
         Method to set reset type of specified system.
         :param system_id: System id can be a particular id, or can be "all"(to get all system urls),or None(in that case system url for 1st system is returned).
@@ -771,10 +836,12 @@ class RedfishApi:
             if bool_resp == False:
                 raise Exception("Failed")
             system_url = response_base_url.dict["Systems"]["@odata.id"]
+            print("system_url is",system_url)
             bool_resp1, system = self.get_system_url(system_url, system_id)
             if bool_resp1 == True:
                 for i in range(len(system)):
                     system_x_url = system[i]
+                    print("system_x_url is",system_x_url)
                     bool_respx, response_system_x_url = self.redfish_response("get", system_x_url)
                     if bool_respx == False:
                         raise Exception("Failed")
@@ -1318,6 +1385,8 @@ class RedfishApi:
                             power_metrics = response_power_url.dict["PowerControl"][0]["PowerMetrics"]
                             power_usage_list = [power_usage, power_metrics["AverageConsumedWatts"],
                                             power_metrics["MaxConsumedWatts"], power_metrics["MinConsumedWatts"]]
+                        power_state_resp = self.get_power_state()
+                        power_usage_list.append("Power " + power_state_resp[1][0]['PowerState'])
                         logger.info(power_usage_list)
                         return True, power_usage_list
             else:
@@ -1346,6 +1415,7 @@ class RedfishApi:
         """
         try:
             self.set_reset_type(reset_typ="ForceOff")
+            return True
         except Exception as e:
             traceback.print_exc()
             logger.error("error msg: {}".format(e))
@@ -1375,7 +1445,7 @@ class RedfishApi:
             logger.error("error msg: {}".format(e))
             return False, None
 
-    def systems_wrapper(self, func):
+    def systems_wrapper(self, power_actions=None):
         """
                 Method to get multiple system info.
                 :return: List
@@ -1384,39 +1454,71 @@ class RedfishApi:
         for index, host in enumerate(self.REDFISH_OBJ_list):
             self.REDFISH_OBJ = host
             self.REDFISH_OBJ.login(auth="basic")
+            logger.info(self.config_dict["systems"][index]["login_host"])
             self.redfish_version = (self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict[
                 "RedfishVersion"]
             logger.info(self.redfish_version)
-
-            if self.redfish_version == "1.8.0":
-                self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
-                    "Manufacturer"]
-                logger.info(self.system_manufacturer)
-                self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
-                logger.info(self.system_model)
+            oem_keys=(self.REDFISH_OBJ.get(self.config_dict["base_url"], None)).dict["Oem"].keys()
+            if self.redfish_version in ["1.8.0", "1.11.0"]:
+               if ((self.redfish_version == "1.11.0") and (list(oem_keys)[0] == "Dell")):
+                  self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
+                  "Manufacturer"]
+                  logger.info(self.system_manufacturer)
+                  self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
+                  logger.info(self.system_model)
+               else:
+                  self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict[
+                  "Manufacturer"]
+                  logger.info(self.system_manufacturer)
+                  self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url_1_8"], None)).dict["Model"]
+                  logger.info(self.system_model)
             else:
                 self.system_manufacturer = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict[
                     "Manufacturer"]
                 logger.info(self.system_manufacturer)
                 self.system_model = (self.REDFISH_OBJ.get(self.config_dict["system_url"], None)).dict["Model"]
                 logger.info(self.system_model)
-            status, function_out = self.power_usage()
-            logger.info(function_out)
-            if status:
-                out.append([self.config_dict["systems"][index]["login_host"],
+            logger.info(power_actions)
+            if power_actions: 
+               if self.config_dict["systems"][index]["power_action"]:
+                  status, response = self.execute_power_exceptions()
+                  assert status
+                  logger.info("power actions has completed successfully")
+                  if response[0] == "Power off Done":
+                     out.append([self.config_dict["systems"][index]["login_host"],response[1],response[2]])
+               else:
+                    logger.info("user disabled the power actions for the system {}".format(self.config_dict["systems"][index]["login_host"]))
+                    out=out
+            else:
+                status, function_out = self.power_usage()
+                logger.info(function_out)
+                if status:
+                    out.append([self.config_dict["systems"][index]["login_host"],
                             self.system_manufacturer + " " + self.system_model] + function_out)
-                logger.info(out)
+        logger.info(out)
         return out
-
     def multi_power_usage(self):
         """
                 Method to get multiple Power usage info.
                 :return: List
         """
-        output = self.systems_wrapper(self.power_usage())
+        output = self.systems_wrapper()
+        count = 0
+        power_consume = 0
+        for system in output:
+            power_consume = power_consume + system[2]
+            count += 1
+        output.append(['Total No of Systems', str(count), "Total Power: " + str(power_consume),"","","",""])
         return output
-
-
+    def actions_on_power_over_consumed_systems(self):
+        """
+        The method will help end user to take the actions of power over consumed systems.
+        actions will be Foreceoff default, User can provide in config other actions to perform
+        """
+        output = self.systems_wrapper(power_actions=True)
+        systems= [system[0] for system in output]
+        logger.info(f'power over consumed systems are {systems}')
+        return output
 '''
 if __name__=="__main__":
 #Creating object:

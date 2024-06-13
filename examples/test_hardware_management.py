@@ -121,7 +121,8 @@ def test_power_actions():
                if power_system[-1] == "Power Off":
                   power_system.pop(); power_system.append("Power Off (By Triton) || " + "Last Recorded Power: " + str(system[2]) +"W || " + "Power Threshold : " + str(system[1])  + "W")
     print(power)
-    html_tb = gr.create_html_table(power, headers)
+   
+   html_tb = gr.create_html_table(power, headers)
     file_name_after = gr.generate_hardware_report(html_tb)
     print(f'Before power actions power report file name is {file_name_before}')
     print(f'After power actions power report file name is {file_name_after}')

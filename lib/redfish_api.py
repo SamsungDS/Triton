@@ -95,7 +95,7 @@ class RedfishApi:
                         logger.info(self.system_model)
                     self.REDFISH_OBJ_list.append(self.REDFISH_OBJ)
             except:
-                # traceback.print_exc()
+                traceback.print_exc()
                 print("Error in making redfish object with given configurations")
                 sys.exit(1)
             print("Fetching openAPI schema file from web........")
@@ -715,6 +715,10 @@ class RedfishApi:
             return False, storage_details
 
     def set_power_limit(self,power_limit=500):
+        """
+        Method to set the power limit
+        :return: Bool,API in response in Json
+        """
         try:
             if self.system_manufacturer == 'Dell Inc.':
                logger.info("system manufacturer is {}".format(self.system_manufacturer))

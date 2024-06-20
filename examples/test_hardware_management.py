@@ -94,9 +94,9 @@ def test_get_multi_power_usage():
     file_name= gr.generate_hardware_report(html_tb)
 def test_set_power_usage_value():
     """
-            Method to get power usage.
+            Method to set power usage.
             :return: power usage.
-            usage : pytest test_hardware_management.py::test_get_power_usage
+            usage : pytest test_hardware_management.py::test_set_power_usage
     """
     bool_resp, result = ob.set_power_limit(power_limit=540)
     print(result)
@@ -121,30 +121,29 @@ def test_power_actions():
                if power_system[-1] == "Power Off":
                   power_system.pop(); power_system.append("Power Off (By Triton) || " + "Last Recorded Power: " + str(system[2]) +"W || " + "Power Threshold : " + str(system[1])  + "W")
     print(power)
-   
-   html_tb = gr.create_html_table(power, headers)
+    html_tb = gr.create_html_table(power, headers)
     file_name_after = gr.generate_hardware_report(html_tb)
     print(f'Before power actions power report file name is {file_name_before}')
     print(f'After power actions power report file name is {file_name_after}')
 
-'''
-def test_set_power_usage_value_1():
+
+def test_set_power_limit_correction():
     """
-            Method to get power usage.
-            :return: power usage.
-            usage : pytest test_hardware_management.py::test_get_power_usage
+            Method to set power limit correction.
+            :return: power limit status
+            usage : pytest test_hardware_management.py::test_set_power_limit_correction
     """
     bool_resp, result = ob.set_power_limit_correction_time(power_limit_correction_time=300)
     print(result)
 
-def test_set_power_usage_value_2():
+def test_set_power_limit_exception():
     """
-            Method to get power usage.
-            :return: power usage.
-            usage : pytest test_hardware_management.py::test_get_power_usage
+            Method to set limit exception.
+            :return: power limit correction status.
+            usage : pytest test_hardware_management.py::test_set_power_limit_exception
     """
     bool_resp, result = ob.set_power_limit_exception(power_limit_exception="NoAction")
     print(result)
 
-'''
+
 

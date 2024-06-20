@@ -286,14 +286,26 @@ class RedfishApi:
         :return: Bool,string output for openapi schema file
         """
         try:
-            result = requests.get(self.config_dict["openapi_url"])
-            if result.status_code != 200:
-                raise Exception("Failed")
-            try:
-                self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
-            except Exception as e:
-                logger.error("error msg: {}".format(e))
-                sys.exit(1)
+            #if len(self.openapi_dict) > 0:
+            #    pass
+            #    #return
+            filename = self.config_dict["filename"]
+            if os.path.exists(filename) != True:
+                print("Not exists", self.config_dict["openapi_url"])
+                result = requests.get(self.config_dict["openapi_url"])
+                if result.status_code == 200:
+                    #raise Exception("Failed")
+                    try:
+                        self.openapi_dict = yaml.load(result.text, Loader=yaml.FullLoader)
+                        f = open(filename, "w")
+                        f.write(result.text)
+                        f.close()
+                    except Exception as e:
+                        logger.error("error msg: {}".format(e))
+                        sys.exit(1)
+            else:
+                with open(filename, 'r') as file:
+                    self.openapi_dict = yaml.safe_load(file)
         except:
             logger.error("Resource not found at {} with response code as:{}".format(self.config_dict["openapi_url"],
                                                                                     result.status_code))

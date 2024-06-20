@@ -1501,6 +1501,7 @@ class RedfishApi:
                             self.system_manufacturer + " " + self.system_model] + function_out)
         logger.info(out)
         return out
+    
     def multi_power_usage(self):
         """
                 Method to get multiple Power usage info.
@@ -1514,6 +1515,7 @@ class RedfishApi:
             count += 1
         output.append(['Total No of Systems', str(count), "Total Power: " + str(power_consume),"","","",""])
         return output
+    
     def actions_on_power_over_consumed_systems(self):
         """
         The method will help end user to take the actions of power over consumed systems.

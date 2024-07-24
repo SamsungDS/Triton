@@ -1,34 +1,6 @@
-#
-#   BSD LICENSE
-#   Copyright (c) 2022 Samsung Electronics Corporation
-#   All rights reserved.
-#
-#   Redistribution and use in source and binary forms, with or without
-#   modification, are permitted provided that the following conditions
-#   are met:
-#
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in
-#       the documentation and/or other materials provided with the
-#       distribution.
-#     * Neither the name of Samsung Electronics Corporation nor the names of
-#       its contributors may be used to endorse or promote products derived
-#       from this software without specific prior written permission.
-#
-#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-#   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-#   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-#   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-#   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-#   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-#   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-#   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-#   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-#   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+#Copyright (c) 2024 Samsung Electronics Corporation
+#SPDX-License-Identifier: BSD-3-Clause
+
 import os
 import sys
 
@@ -46,7 +18,7 @@ rd = RedfishApi()
 class Report:
     def __init__(self):
         try:
-            with open("../config/config_redfish.json") as config_json:
+            with open("config/config_redfish.json") as config_json:
                 self.config_dict = json.load(config_json)
 
         except Exception as e:
@@ -121,7 +93,7 @@ class Report:
     def generate_hardware_report(self, html_results):
         """
         Method to generate HTML report for Hardware details.
-        :return: None
+        :return: file name of the report will be returned
         """
         try:
             logdir = self.config_dict["logdir"]
@@ -136,7 +108,7 @@ class Report:
               .center {{text-align:center;}}
               .titlerow {{border: 2pt solid}}
               .notvalid {{background-color:#FFFF00}}
-              body {{background-color:lightgrey; border: 1pt solid; text-align:center; margin-left:auto; margin-right:auto}}
+              body {{background-color:lightgrey; border: 1pt solid; text-align:center;}}
               th {{text-align:center; background-color:beige; border: 1pt solid}}
               td {{text-align:left; background-color:white; border: 1pt solid; word-wrap:break-word;}}
               table {{width:90%; margin: 0px auto; table-layout:fixed;}}
@@ -145,7 +117,7 @@ class Report:
             <table>
               <tr>
                 <th>
-                  <h2>##### System Details #####</h2>
+                  <h2> 9th Floor *** Storage Solutions Lab *** Servers Power Report </h2>
                   {}<br/>
                 </th>
               </tr>
@@ -171,6 +143,7 @@ class Report:
             with open(log_file, "w", encoding="utf-8") as out_file:
                 out_file.write(
                     html_string.format(current_time.strftime("%c"), self.html_results))
+            return log_file
         except Exception as e:
             logger.error("error msg: {}".format(e))
             sys.exit(1)
@@ -182,19 +155,24 @@ class Report:
         """
         power_threshold = self.config_dict["power_threshold"]
         html = '<table>'
-        html += "<tr><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th></tr>\n".format(headers[0],
+        html += "<tr><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th><th>{}</th></tr>\n".format(headers[0],
                                                                                                        headers[1],
                                                                                                        headers[2],
                                                                                                        headers[3],
                                                                                                        headers[4],
-                                                                                                       headers[5])
+                                                                                                       headers[5],
+                                                                                                       headers[6])
         for row in data:
             html += '<tr>'
             for value in row:
                 if type(value) == int and value >= power_threshold:
                     html += '<td style="background-color: red;">{}</td>'.format(value)
+                elif type(value) == int and value >= (power_threshold * 0.9):
+                    html += '<td style="background-color: orange;">{}</td>'.format(value)
+                elif type(value) == int and value < power_threshold:
+                    html += '<td style="background-color: lightgreen;">{}</td>'.format(value)
                 else:
-                    html += '<td>{}</td>'.format(value)
+                   html += '<td>{}</td>'.format(value)
             html += '</tr>'
         html += '</table>'
         return html

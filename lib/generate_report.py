@@ -117,7 +117,7 @@ class Report:
             <table>
               <tr>
                 <th>
-                  <h2> 9th Floor *** Storage Solutions Lab *** Servers Power Report </h2>
+                  <h2> *** Storage Solutions Lab *** Servers Power Report </h2>
                   {}<br/>
                 </th>
               </tr>

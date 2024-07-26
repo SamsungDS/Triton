@@ -18,6 +18,10 @@ The tool will login into the service specified by the login_host argument using 
 
 An HTML report is constructed and saved in the same directory as the tool.
 
+Update the config_redfish.json file with host IP, credentials and power_actions flags.
+
+Then run the test_power_actions using the below command:
+“pytest –v –s examples/test_hardware_management.py::test_power_actions”
 
 
 

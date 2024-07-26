@@ -4,44 +4,76 @@
     {
        "login_host" : "ipaddress",
         "username" : "user",
-        "password" : "pass"
+        "password" : "pass",
+        "power_action" : false,
+        "action_type" : "ForceOff"
     },
     {
        "login_host" : "ipaddress1",
         "username" : "user",
-        "password" : "pass"
+        "password" : "pass",
+        "power_action" : false,
+        "action_type" : "ForceOff"
     }
 
 
   ],
-  "logdir" : "logdir",
-  "response_codes" : {
-    "success" : [200,201,202,204],
-    "failed" : [301,302,304,400,401,403,404,405,406,409,410,411,412,415,428,431,500,501,503,507]
+  "logdir": "logdir",
+  "response_codes": {
+    "success": [
+      200,
+      201,
+      202,
+      204
+    ],
+    "failed": [
+      301,
+      302,
+      304,
+      400,
+      401,
+      403,
+      404,
+      405,
+      406,
+      409,
+      410,
+      411,
+      412,
+      415,
+      428,
+      431,
+      500,
+      501,
+      503,
+      507
+    ]
   },
-  "schema_url" : "https://redfish.dmtf.org/schemas/v1/",
-  "openapi_url" : "https://redfish.dmtf.org/schemas/v1/openapi.yaml",
-  "base_url" : "/redfish/v1",
-  "system_url" : "/redfish/v1/Systems/System.Embedded.1",
-  "filename" : "result.txt",
-  "system_id" : "all",
-  "reset_typ" : "Off",
-  "bios_get" : "current",
-  "attr_name" : "",
-  "service" : "HTTPS",
-  "prot_enabled" : "0",
-  "port" : "",
-  "dest" : "",
-  "subs_type" : "Event",
-  "context" : "",
-  "protocol" : "Redfish",
-  "ddest" : "",
-  "event_id" : "",
-  "msg" : "",
-  "severity" : "",
-  "manager_reset_type" : "",
-  "power_threshold": 400,
-  "time_interval" : 5,
-  "time_type" : "seconds",
-  "validate" : false  
+  "schema_url": "https://redfish.dmtf.org/schemas/v1/",
+  "openapi_url": "https://redfish.dmtf.org/schemas/v1/openapi.yaml",
+  "base_url": "/redfish/v1",
+  "system_url": "/redfish/v1/Systems/System.Embedded.1",
+  "system_url_1_8": "/redfish/v1/Systems/1",
+  "power_url": "/redfish/v1/Chassis/System.Embedded.1/Power#/PowerControl/0",
+  "system_id": "all",
+  "reset_typ": "ForceOff",
+  "bios_get": "current",
+  "attr_name": "",
+  "service": "HTTPS",
+  "prot_enabled": "0",
+  "port": "",
+  "dest": "",
+  "subs_type": "Event",
+  "context": "",
+  "protocol": "Redfish",
+  "ddest": "",
+  "event_id": "",
+  "msg": "",
+  "severity": "",
+  "manager_reset_type": "",
+  "power_threshold": 500,
+  "time_interval": 5,
+  "time_type": "seconds",
+  "validate_url" : false,
+  "validate_json" : false
 }
